@@ -67,7 +67,7 @@ fn project_name_reserved_windows() {
 #[test]
 fn github_url_valid() {
   assert!(is_valid_github_repo_url("https://github.com/owner/repo").is_ok());
-  assert!(is_valid_github_repo_url("https://github.com/anesis-dev/anesis-cli").is_ok());
+  assert!(is_valid_github_repo_url("https://github.com/anesis-dev/anesis").is_ok());
 }
 
 #[test]

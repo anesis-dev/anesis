@@ -72,20 +72,20 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           cd target/${{ matrix.target }}/release
-          tar czf ../../../oxide-${{ matrix.name }}.tar.gz oxide
+          tar czf ../../../anesis-${{ matrix.name }}.tar.gz anesis
 
       - name: Package (Windows)
         if: runner.os == 'Windows'
         run: |
           cd target/${{ matrix.target }}/release
-          7z a ../../../oxide-${{ matrix.name }}.zip oxide.exe
+          7z a ../../../anesis-${{ matrix.name }}.zip anesis.exe
 
       - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            oxide-*.tar.gz
-            oxide-*.zip
+            anesis-*.tar.gz
+            anesis-*.zip
   publish-crates:
     name: Publish to crates.io
     needs: build

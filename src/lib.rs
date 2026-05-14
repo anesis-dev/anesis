@@ -33,7 +33,7 @@ impl AppContext {
     let backend_url = std::env::var("ANESIS_BACKEND_URL")
       .unwrap_or_else(|_| "https://anesis-server.onrender.com".to_string());
     let frontend_url = std::env::var("ANESIS_FRONTEND_URL")
-      .unwrap_or_else(|_| "https://anesis-cli.vercel.app".to_string());
+      .unwrap_or_else(|_| "https://anesis-dev.vercel.app".to_string());
     Self {
       paths,
       client,

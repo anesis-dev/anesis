@@ -3,10 +3,10 @@
 	"version": "0.9.1",
 	"binaryVersion": "0.9.1",
 	"description": "CLI for scaffolding projects from remote templates and extending them with project addons",
-	"homepage": "https://github.com/anesis-dev/anesis-cli",
+	"homepage": "https://github.com/anesis-dev/anesis",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/anesis-dev/anesis-cli.git"
+		"url": "git+https://github.com/anesis-dev/anesis.git"
 	},
 	"license": "MIT OR Apache-2.0",
 	"bin": {

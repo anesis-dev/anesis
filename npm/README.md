@@ -14,13 +14,13 @@ It supports:
 
 ## Official website
 
-The official Anesis website is [anesis-cli.vercel.app](https://anesis-cli.vercel.app/).
+The official Anesis website is [anesis.vercel.app](https://anesis.vercel.app/).
 
 Use it as the main guide for learning and using Anesis:
 
-- [Docs](https://anesis-cli.vercel.app/docs) cover installation, authentication, templates, addons, publishing, and reference material.
-- [Templates](https://anesis-cli.vercel.app/templates) lists available project starters.
-- [Addons](https://anesis-cli.vercel.app/addons) lists reusable workflow addons.
+- [Docs](https://anesis.vercel.app/docs) cover installation, authentication, templates, addons, publishing, and reference material.
+- [Templates](https://anesis.vercel.app/templates) lists available project starters.
+- [Addons](https://anesis.vercel.app/addons) lists reusable workflow addons.
 
 This README keeps a quick CLI reference for the repository and package users. The website contains the full, up-to-date usage guide.
 
@@ -31,13 +31,13 @@ This README keeps a quick CLI reference for the repository and package users. Th
 Linux and macOS:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/anesis-dev/anesis-cli/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/anesis-dev/anesis/main/install.sh | bash
 ```
 
 Windows PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/anesis-dev/anesis-cli/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/anesis-dev/anesis/main/install.ps1 | iex
 ```
 
 Unix installers place the `anesis` binary in `~/.local/bin`. Cargo installs it in `~/.cargo/bin`. Make sure the relevant directory is in your `PATH`.
@@ -45,7 +45,7 @@ Unix installers place the `anesis` binary in `~/.local/bin`. Cargo installs it i
 ### Install with npm
 
 ```bash
-npm install -g @anesis-cli/anesis
+npm install -g @anesis/anesis
 ```
 
 The npm package downloads the matching prebuilt Anesis binary during `postinstall`.
@@ -53,17 +53,17 @@ The npm package downloads the matching prebuilt Anesis binary during `postinstal
 ### Install with cargo
 
 ```bash
-cargo install anesis-cli
+cargo install anesis
 ```
 
 ### Manual install from GitHub Releases
 
 Download the latest release artifact for your platform:
 
-- [Linux x86_64](https://github.com/anesis-dev/anesis-cli/releases/latest/download/anesis-linux-x86_64.tar.gz)
-- [Linux ARM64](https://github.com/anesis-dev/anesis-cli/releases/latest/download/anesis-linux-aarch64.tar.gz)
-- [macOS Apple Silicon](https://github.com/anesis-dev/anesis-cli/releases/latest/download/anesis-macos-aarch64.tar.gz)
-- [Windows x86_64](https://github.com/anesis-dev/anesis-cli/releases/latest/download/anesis-windows-x86_64.zip)
+- [Linux x86_64](https://github.com/anesis-dev/anesis/releases/latest/download/anesis-linux-x86_64.tar.gz)
+- [Linux ARM64](https://github.com/anesis-dev/anesis/releases/latest/download/anesis-linux-aarch64.tar.gz)
+- [macOS Apple Silicon](https://github.com/anesis-dev/anesis/releases/latest/download/anesis-macos-aarch64.tar.gz)
+- [Windows x86_64](https://github.com/anesis-dev/anesis/releases/latest/download/anesis-windows-x86_64.zip)
 
 ## Getting started
 

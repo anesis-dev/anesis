@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-APP_NAME="oxide"
-REPO="anesis-dev/anesis-cli"
+APP_NAME="anesis"
+REPO="anesis-dev/anesis"
 OS="$(uname -s)"
 ARCH="$(uname -m)"
 

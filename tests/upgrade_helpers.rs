@@ -1,11 +1,11 @@
 mod common;
 
+use anesis_cli::upgrade::render_upgrade_notice;
 use chrono::{TimeZone, Utc};
 use common::{
   asset_filename_for_tests, is_cache_fresh_for_tests, is_newer_version_for_tests,
   normalize_version_tag_for_tests, parse_version_for_tests, release_asset_url_for_tests,
 };
-use anesis_cli::upgrade::render_upgrade_notice;
 
 #[test]
 fn normalize_version_tag_strips_leading_v() {
@@ -42,7 +42,7 @@ fn release_asset_url_uses_expected_github_pattern() {
   let asset_url = release_asset_url_for_tests("1.2.3", "linux-x86_64");
   assert_eq!(
     asset_url,
-    "https://github.com/anesis-dev/anesis-cli/releases/download/v1.2.3/anesis-linux-x86_64"
+    "https://github.com/anesis-dev/anesis/releases/download/v1.2.3/anesis-linux-x86_64"
   );
 }
 
@@ -136,5 +136,9 @@ fn asset_filename_for_macos_has_no_extension() {
 
 #[test]
 fn cache_is_stale_for_invalid_date_format() {
-  assert!(!is_cache_fresh_for_tests("not-a-date", "0.8.0", chrono::Utc::now()));
+  assert!(!is_cache_fresh_for_tests(
+    "not-a-date",
+    "0.8.0",
+    chrono::Utc::now()
+  ));
 }

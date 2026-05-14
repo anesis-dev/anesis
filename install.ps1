@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
-$APP_NAME = "oxide"
-$REPO = "anesis-dev/anesis-cli"
+$APP_NAME = "anesis"
+$REPO = "anesis-dev/anesis"
 $ARCH = if ([Environment]::Is64BitOperatingSystem) { "x86_64" } else { "i686" }
 
 Write-Host "Fetching latest version..." -ForegroundColor Cyan
@@ -64,7 +64,7 @@ try {
     try {
         & $destPath completions powershell
         if ($LASTEXITCODE -ne 0) {
-            throw "oxide exited with code $LASTEXITCODE"
+            throw "anesis exited with code $LASTEXITCODE"
         }
     } catch {
         Write-Host "PowerShell completions were not configured automatically: $_" -ForegroundColor Yellow

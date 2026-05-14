@@ -13,8 +13,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::AppContext;
 
-const RELEASES_API_URL: &str = "https://api.github.com/repos/anesis-dev/anesis-cli/releases/latest";
-const RELEASES_DOWNLOAD_BASE_URL: &str = "https://github.com/anesis-dev/anesis-cli/releases/download";
+const RELEASES_API_URL: &str = "https://api.github.com/repos/anesis-dev/anesis/releases/latest";
+const RELEASES_DOWNLOAD_BASE_URL: &str = "https://github.com/anesis-dev/anesis/releases/download";
 
 #[derive(Debug, Deserialize)]
 struct LatestReleaseResponse {
@@ -108,7 +108,7 @@ pub fn render_upgrade_notice(latest_version: &str) -> String {
 }
 
 fn github_user_agent() -> String {
-  format!("anesis-cli/{}", env!("CARGO_PKG_VERSION"))
+  format!("anesis/{}", env!("CARGO_PKG_VERSION"))
 }
 
 fn releases_api_url() -> String {
