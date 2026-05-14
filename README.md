@@ -45,7 +45,7 @@ Unix installers place the `anesis` binary in `~/.local/bin`. Cargo installs it i
 ### Install with npm
 
 ```bash
-npm install -g @anesis/anesis
+npm install -g anesis-cli
 ```
 
 The npm package downloads the matching prebuilt Anesis binary during `postinstall`.
