@@ -1,5 +1,5 @@
 {
-	"name": "anesis",
+	"name": "anesis-cli",
 	"version": "0.9.1",
 	"binaryVersion": "0.9.1",
 	"description": "CLI for scaffolding projects from remote templates and extending them with project addons",
