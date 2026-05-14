@@ -1,7 +1,7 @@
 {
 	"name": "anesis-cli",
-	"version": "0.9.1",
-	"binaryVersion": "0.9.1",
+	"version": "0.9.2",
+	"binaryVersion": "0.9.2",
 	"description": "CLI for scaffolding projects from remote templates and extending them with project addons",
 	"homepage": "https://github.com/anesis-dev/anesis",
 	"repository": {
