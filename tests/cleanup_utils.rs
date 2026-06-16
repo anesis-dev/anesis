@@ -30,7 +30,10 @@ fn removes_empty_parent_directories_up_to_template_root() {
   // "group" is empty after removing "my-template", so it should also be gone
   assert!(!group.exists(), "empty intermediate dir should be removed");
   // templates_dir itself should NOT be removed (it's the root boundary)
-  assert!(templates_dir.exists(), "template root should not be removed");
+  assert!(
+    templates_dir.exists(),
+    "template root should not be removed"
+  );
 }
 
 #[test]

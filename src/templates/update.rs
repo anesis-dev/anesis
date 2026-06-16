@@ -1,11 +1,17 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::{AppContext, auth::token::get_auth_user};
+use crate::{AppContext, auth::token::get_auth_user, utils::ui::spinner};
 
 #[derive(Deserialize, Serialize)]
 pub struct UpdateTemplateDto {
   pub url: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub visibility: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub repo_credential_id: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub organization_id: Option<String>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -13,9 +19,16 @@ pub struct UpdateTemplateRsponse {
   pub message: String,
 }
 
-pub async fn update(ctx: &AppContext, template_url: &str) -> Result<()> {
+pub async fn update(
+  ctx: &AppContext,
+  template_url: &str,
+  visibility: Option<String>,
+  credential_id: Option<String>,
+  org_id: Option<String>,
+) -> Result<()> {
   let user = get_auth_user(&ctx.paths.auth)?;
 
+  let sp = spinner("Updating template in registry...");
   let res: UpdateTemplateRsponse = ctx
     .client
     .patch(format!("{}/template", ctx.backend_url))
@@ -23,12 +36,19 @@ pub async fn update(ctx: &AppContext, template_url: &str) -> Result<()> {
     .header("Content-Type", "application/json")
     .json(&UpdateTemplateDto {
       url: template_url.to_string(),
+      visibility,
+      repo_credential_id: credential_id,
+      organization_id: org_id,
     })
     .send()
-    .await?
-    .error_for_status()?
+    .await
+    .inspect_err(|_| sp.finish_and_clear())?
+    .error_for_status()
+    .inspect_err(|_| sp.finish_and_clear())?
     .json()
-    .await?;
+    .await
+    .inspect_err(|_| sp.finish_and_clear())?;
+  sp.finish_and_clear();
 
   println!("✅ {}", res.message);
   Ok(())

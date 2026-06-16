@@ -1,7 +1,7 @@
 mod common;
 
+use anesis::addons::{cache::CachedAddon, install::AddonInstallResult, manifest::AddonManifest};
 use common::addon_classify_install_state_for_tests;
-use anesis_cli::addons::{cache::CachedAddon, install::AddonInstallResult, manifest::AddonManifest};
 
 fn cached_addon(commit_sha: &str) -> CachedAddon {
   CachedAddon {

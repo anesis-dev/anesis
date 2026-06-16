@@ -1,5 +1,5 @@
+use anesis::{auth::token::get_auth_user, utils::errors::AnesisError};
 use assert_fs::prelude::*;
-use anesis_cli::{auth::token::get_auth_user, utils::errors::AnesisError};
 
 #[test]
 fn reads_valid_auth_file() {

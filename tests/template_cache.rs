@@ -1,5 +1,4 @@
-use assert_fs::prelude::*;
-use anesis_cli::{
+use anesis::{
   AppContext,
   cache::{
     TemplatesCache, get_cached_template, get_installed_templates, is_template_installed,
@@ -7,6 +6,7 @@ use anesis_cli::{
   },
   paths::AnesisPaths,
 };
+use assert_fs::prelude::*;
 
 fn make_test_ctx(templates_dir: &std::path::Path) -> AppContext {
   let paths = AnesisPaths {

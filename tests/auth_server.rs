@@ -1,6 +1,6 @@
 use std::sync::{Mutex, OnceLock};
 
-use anesis_cli::auth::server::run_local_auth_server;
+use anesis::auth::server::run_local_auth_server;
 
 // Each test in this file starts a real Axum server on 127.0.0.1:8080.
 // The global mutex ensures no two tests bind the same port simultaneously.
@@ -16,9 +16,8 @@ async fn callback_with_valid_state_returns_user() {
   let state = "validstate0000000000000000000000".to_string();
   let state_clone = state.clone();
 
-  let server_handle = tokio::spawn(async move {
-    run_local_auth_server(state_clone, "http://localhost:3000").await
-  });
+  let server_handle =
+    tokio::spawn(async move { run_local_auth_server(state_clone, "http://localhost:3000").await });
 
   // Give the server time to bind before sending the request.
   tokio::time::sleep(std::time::Duration::from_millis(200)).await;
@@ -49,9 +48,8 @@ async fn callback_with_invalid_state_redirects_to_error() {
   let _lock = acquire_port();
   let state = "correctstate00000000000000000000".to_string();
 
-  let server_handle = tokio::spawn(async move {
-    run_local_auth_server(state, "http://localhost:3000").await
-  });
+  let server_handle =
+    tokio::spawn(async move { run_local_auth_server(state, "http://localhost:3000").await });
 
   tokio::time::sleep(std::time::Duration::from_millis(200)).await;
 
@@ -62,11 +60,7 @@ async fn callback_with_invalid_state_redirects_to_error() {
 
   let res = client
     .get("http://127.0.0.1:8080/callback")
-    .query(&[
-      ("state", "wrongstate"),
-      ("token", "tok"),
-      ("name", "user"),
-    ])
+    .query(&[("state", "wrongstate"), ("token", "tok"), ("name", "user")])
     .send()
     .await
     .unwrap();

@@ -1,6 +1,6 @@
 use std::fmt;
 
-use anesis_cli::utils::errors::AnesisError;
+use anesis::utils::errors::AnesisError;
 
 // ── AnesisError Display ────────────────────────────────────────────────────────
 
@@ -61,7 +61,10 @@ fn anesis_error_survives_anyhow_context_chain() {
   let found = wrapped
     .chain()
     .any(|c| c.downcast_ref::<AnesisError>().is_some());
-  assert!(found, "AnesisError should be discoverable in the error chain");
+  assert!(
+    found,
+    "AnesisError should be discoverable in the error chain"
+  );
 }
 
 // ── AnesisError is Debug + Display (both trait bounds required by the codebase) ──

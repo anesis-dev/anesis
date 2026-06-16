@@ -40,7 +40,9 @@ fn write_auth_file_creates_file_with_correct_content() {
 fn write_auth_file_overwrites_existing_content() {
   let dir = assert_fs::TempDir::new().unwrap();
   let auth_file = dir.child("auth.json");
-  auth_file.write_str(r#"{"token":"old","name":"old"}"#).unwrap();
+  auth_file
+    .write_str(r#"{"token":"old","name":"old"}"#)
+    .unwrap();
 
   write_auth_file_for_tests(auth_file.path(), r#"{"token":"new","name":"new"}"#).unwrap();
 

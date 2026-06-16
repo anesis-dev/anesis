@@ -1,4 +1,4 @@
-use anesis_cli::addons::manifest::*;
+use anesis::addons::manifest::*;
 
 // ── Minimal manifest ──────────────────────────────────────────────────────────
 

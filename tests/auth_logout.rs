@@ -1,5 +1,5 @@
+use anesis::auth::logout::logout;
 use assert_fs::prelude::*;
-use anesis_cli::auth::logout::logout;
 
 #[test]
 fn removes_auth_file_when_logged_in() {

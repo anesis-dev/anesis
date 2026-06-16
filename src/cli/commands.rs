@@ -1,7 +1,16 @@
-use clap::{Subcommand, arg};
+//! Clap `Subcommand` enums that define every CLI subcommand and their arguments.
+//!
+//! The hierarchy is:
+//! - [`Commands`]        — top-level subcommands (`new`, `template`, `addon`, …)
+//! - [`TemplateCommands`] — subcommands under `anesis template`
+//! - [`AddonCommands`]   — subcommands under `anesis addon`
+//! - [`UseCommands`]     — catch-all under `anesis use` (uses `external_subcommand`)
+
+use clap::Subcommand;
 
 use crate::completions::CompletionShell;
 
+/// Subcommands available under `anesis addon`.
 #[derive(Subcommand)]
 pub enum AddonCommands {
   #[command(alias = "i", about = "Install and cache an addon (anesis addon i)")]
@@ -20,6 +29,23 @@ pub enum AddonCommands {
   Publish {
     #[arg(help = "GitHub repository URL (e.g. https://github.com/owner/repo)")]
     addon_url: String,
+
+    #[arg(
+      long,
+      value_name = "VISIBILITY",
+      help = "Visibility: public, private, org-private (default: public)"
+    )]
+    visibility: Option<String>,
+
+    #[arg(
+      long,
+      value_name = "UUID",
+      help = "Credential ID for private GitHub repositories"
+    )]
+    credential_id: Option<String>,
+
+    #[arg(long, value_name = "UUID", help = "Organization ID to publish under")]
+    org_id: Option<String>,
   },
 
   #[command(
@@ -29,9 +55,28 @@ pub enum AddonCommands {
   Update {
     #[arg(help = "GitHub repository URL (e.g. https://github.com/owner/repo)")]
     addon_url: String,
+
+    #[arg(
+      long,
+      value_name = "VISIBILITY",
+      help = "Visibility: public, private, org-private"
+    )]
+    visibility: Option<String>,
+
+    #[arg(
+      long,
+      value_name = "UUID",
+      help = "Credential ID for private GitHub repositories"
+    )]
+    credential_id: Option<String>,
+
+    #[arg(long, value_name = "UUID", help = "Organization ID")]
+    org_id: Option<String>,
   },
+
 }
 
+/// Subcommands available under `anesis template`.
 #[derive(Subcommand)]
 pub enum TemplateCommands {
   #[command(
@@ -65,6 +110,23 @@ pub enum TemplateCommands {
   Publish {
     #[arg(help = "GitHub repository URL (e.g. https://github.com/owner/repo)")]
     template_url: String,
+
+    #[arg(
+      long,
+      value_name = "VISIBILITY",
+      help = "Visibility: public, private, org-private (default: public)"
+    )]
+    visibility: Option<String>,
+
+    #[arg(
+      long,
+      value_name = "UUID",
+      help = "Credential ID for private GitHub repositories"
+    )]
+    credential_id: Option<String>,
+
+    #[arg(long, value_name = "UUID", help = "Organization ID to publish under")]
+    org_id: Option<String>,
   },
 
   #[command(
@@ -74,15 +136,38 @@ pub enum TemplateCommands {
   Update {
     #[arg(help = "GitHub repository URL (e.g. https://github.com/owner/repo)")]
     template_url: String,
+
+    #[arg(
+      long,
+      value_name = "VISIBILITY",
+      help = "Visibility: public, private, org-private"
+    )]
+    visibility: Option<String>,
+
+    #[arg(
+      long,
+      value_name = "UUID",
+      help = "Credential ID for private GitHub repositories"
+    )]
+    credential_id: Option<String>,
+
+    #[arg(long, value_name = "UUID", help = "Organization ID")]
+    org_id: Option<String>,
   },
+
 }
 
+/// The `anesis use` subcommand uses `external_subcommand` so clap captures
+/// all remaining arguments as a `Vec<String>` without defining named
+/// subcommands.  The runner then interprets `args[0]` as the addon ID and
+/// `args[1]` as the command name.
 #[derive(Subcommand)]
 pub enum UseCommands {
   #[command(external_subcommand)]
   External(Vec<String>),
 }
 
+/// Top-level subcommands for the `anesis` binary.
 #[derive(Subcommand)]
 pub enum Commands {
   #[command(alias = "n", about = "Create a new project from a template (anesis n)")]

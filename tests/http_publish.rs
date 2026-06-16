@@ -5,14 +5,14 @@
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use assert_fs::TempDir;
-use anesis_cli::{
+use anesis::{
   AppContext,
   addons::{publish::publish_addon, update::update_addon},
   paths::AnesisPaths,
   templates::{publish::publish, update::update},
   utils::errors::AnesisError,
 };
+use assert_fs::TempDir;
 use reqwest::Client;
 
 fn make_ctx_without_auth(tmp: &TempDir) -> AppContext {
@@ -41,7 +41,9 @@ async fn template_publish_fails_when_not_logged_in() {
   let tmp = TempDir::new().unwrap();
   let ctx = make_ctx_without_auth(&tmp);
 
-  let err = publish(&ctx, "https://github.com/owner/repo").await.unwrap_err();
+  let err = publish(&ctx, "https://github.com/owner/repo", None, None, None)
+    .await
+    .unwrap_err();
   assert!(
     err
       .downcast_ref::<AnesisError>()
@@ -57,7 +59,9 @@ async fn template_update_fails_when_not_logged_in() {
   let tmp = TempDir::new().unwrap();
   let ctx = make_ctx_without_auth(&tmp);
 
-  let err = update(&ctx, "https://github.com/owner/repo").await.unwrap_err();
+  let err = update(&ctx, "https://github.com/owner/repo", None, None, None)
+    .await
+    .unwrap_err();
   assert!(
     err
       .downcast_ref::<AnesisError>()
@@ -73,7 +77,7 @@ async fn addon_publish_fails_when_not_logged_in() {
   let tmp = TempDir::new().unwrap();
   let ctx = make_ctx_without_auth(&tmp);
 
-  let err = publish_addon(&ctx, "https://github.com/owner/addon")
+  let err = publish_addon(&ctx, "https://github.com/owner/addon", None, None, None)
     .await
     .unwrap_err();
   assert!(
@@ -91,7 +95,7 @@ async fn addon_update_fails_when_not_logged_in() {
   let tmp = TempDir::new().unwrap();
   let ctx = make_ctx_without_auth(&tmp);
 
-  let err = update_addon(&ctx, "https://github.com/owner/addon")
+  let err = update_addon(&ctx, "https://github.com/owner/addon", None, None, None)
     .await
     .unwrap_err();
   assert!(
@@ -106,9 +110,12 @@ async fn addon_update_fails_when_not_logged_in() {
 
 #[test]
 fn publish_template_dto_serializes_url() {
-  use anesis_cli::templates::publish::PublishTemplateDto;
+  use anesis::templates::publish::PublishTemplateDto;
   let dto = PublishTemplateDto {
     url: "https://github.com/owner/repo".to_string(),
+    visibility: None,
+    repo_credential_id: None,
+    organization_id: None,
   };
   let json = serde_json::to_string(&dto).unwrap();
   assert!(json.contains(r#""url":"https://github.com/owner/repo""#));
@@ -116,10 +123,56 @@ fn publish_template_dto_serializes_url() {
 
 #[test]
 fn update_template_dto_serializes_url() {
-  use anesis_cli::templates::update::UpdateTemplateDto;
+  use anesis::templates::update::UpdateTemplateDto;
   let dto = UpdateTemplateDto {
     url: "https://github.com/owner/repo".to_string(),
+    visibility: None,
+    repo_credential_id: None,
+    organization_id: None,
   };
   let json = serde_json::to_string(&dto).unwrap();
   assert!(json.contains(r#""url":"https://github.com/owner/repo""#));
+}
+
+#[test]
+fn publish_template_dto_omits_none_fields() {
+  use anesis::templates::publish::PublishTemplateDto;
+  let dto = PublishTemplateDto {
+    url: "https://github.com/owner/repo".to_string(),
+    visibility: None,
+    repo_credential_id: None,
+    organization_id: None,
+  };
+  let json = serde_json::to_string(&dto).unwrap();
+  assert!(!json.contains("visibility"));
+  assert!(!json.contains("repo_credential_id"));
+  assert!(!json.contains("organization_id"));
+}
+
+#[test]
+fn publish_template_dto_includes_visibility_when_set() {
+  use anesis::templates::publish::PublishTemplateDto;
+  let dto = PublishTemplateDto {
+    url: "https://github.com/owner/repo".to_string(),
+    visibility: Some("private".to_string()),
+    repo_credential_id: None,
+    organization_id: None,
+  };
+  let json = serde_json::to_string(&dto).unwrap();
+  assert!(json.contains(r#""visibility":"private""#));
+}
+
+#[test]
+fn update_template_dto_omits_none_fields() {
+  use anesis::templates::update::UpdateTemplateDto;
+  let dto = UpdateTemplateDto {
+    url: "https://github.com/owner/repo".to_string(),
+    visibility: None,
+    repo_credential_id: None,
+    organization_id: None,
+  };
+  let json = serde_json::to_string(&dto).unwrap();
+  assert!(!json.contains("visibility"));
+  assert!(!json.contains("repo_credential_id"));
+  assert!(!json.contains("organization_id"));
 }

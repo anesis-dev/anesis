@@ -1,10 +1,10 @@
 use std::{fs, path::Path, path::PathBuf};
 
-use assert_fs::prelude::*;
-use anesis_cli::completions::{
+use anesis::completions::{
   addon_candidates, command_for_paths, powershell_profile_paths_in, template_candidates,
   upsert_managed_block, upsert_zsh_config, zsh_fpath_snippet,
 };
+use assert_fs::prelude::*;
 
 // ── upsert_managed_block ─────────────────────────────────────────────────────
 

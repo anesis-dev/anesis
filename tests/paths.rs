@@ -1,4 +1,4 @@
-use anesis_cli::paths::AnesisPaths;
+use anesis::paths::AnesisPaths;
 
 // ── AnesisPaths::new ───────────────────────────────────────────────────────────
 
@@ -50,7 +50,10 @@ fn addons_is_under_cache() {
 fn addons_index_is_under_addons() {
   let paths = AnesisPaths::new().unwrap();
   assert!(paths.addons_index.starts_with(&paths.addons));
-  assert_eq!(paths.addons_index.file_name().unwrap(), "anesis-addons.json");
+  assert_eq!(
+    paths.addons_index.file_name().unwrap(),
+    "anesis-addons.json"
+  );
 }
 
 // ── AnesisPaths::ensure_directories ───────────────────────────────────────────

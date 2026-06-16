@@ -1,4 +1,4 @@
-use anesis_cli::templates::{AnesisTemplate, AnesisTemplateMetadata, AnesisTemplateRepository};
+use anesis::templates::{AnesisTemplate, AnesisTemplateMetadata, AnesisTemplateRepository};
 
 // ── JSON serialization / deserialization ──────────────────────────────────────
 

@@ -105,6 +105,7 @@ pub fn get_installed_addons(addons_dir: &Path) -> Result<()> {
     Cell::new("ID").add_attribute(Attribute::Bold),
     Cell::new("Name").add_attribute(Attribute::Bold),
     Cell::new("Version").add_attribute(Attribute::Bold),
+    Cell::new("Source").add_attribute(Attribute::Bold),
   ]);
 
   for addon in &cache.addons {
@@ -112,6 +113,7 @@ pub fn get_installed_addons(addons_dir: &Path) -> Result<()> {
       Cell::new(&addon.id),
       Cell::new(&addon.name),
       Cell::new(&addon.version),
+      Cell::new("registry"),
     ]);
   }
 

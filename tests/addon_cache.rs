@@ -1,11 +1,11 @@
-use assert_fs::prelude::*;
-use anesis_cli::addons::{
+use anesis::addons::{
   cache::{
     get_cached_addon, get_installed_addons, is_addon_installed, remove_addon_from_cache,
     update_addons_cache,
   },
   manifest::AddonManifest,
 };
+use assert_fs::prelude::*;
 
 fn make_manifest(id: &str) -> AddonManifest {
   AddonManifest {
@@ -56,7 +56,7 @@ fn update_addons_cache_replaces_duplicate() {
 
   // Only one entry after replacement
   let content = std::fs::read_to_string(dir.path().join("anesis-addons.json")).unwrap();
-  let cache: anesis_cli::addons::cache::AddonsCache = serde_json::from_str(&content).unwrap();
+  let cache: anesis::addons::cache::AddonsCache = serde_json::from_str(&content).unwrap();
   assert_eq!(cache.addons.len(), 1);
 }
 
@@ -67,7 +67,7 @@ fn update_addons_cache_stores_multiple_addons() {
   update_addons_cache(dir.path(), "prisma", &make_manifest("prisma"), "sha2").unwrap();
 
   let content = std::fs::read_to_string(dir.path().join("anesis-addons.json")).unwrap();
-  let cache: anesis_cli::addons::cache::AddonsCache = serde_json::from_str(&content).unwrap();
+  let cache: anesis::addons::cache::AddonsCache = serde_json::from_str(&content).unwrap();
   assert_eq!(cache.addons.len(), 2);
 }
 

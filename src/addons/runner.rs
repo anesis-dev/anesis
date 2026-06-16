@@ -7,15 +7,15 @@ use reqwest::StatusCode;
 use crate::{
   AppContext,
   templates::generator::{to_camel_case, to_kebab_case, to_pascal_case, to_snake_case},
-  utils::errors::AnesisError,
+  utils::{errors::AnesisError, ui::spinner},
 };
 
 use super::{
-  cache::{get_cached_addon, is_addon_installed},
+  cache::is_addon_installed,
   detect::detect_variant,
-  install::{AddonInstallResult, install_addon, read_cached_manifest},
+  install::{AddonInstallResult, install_addon, read_cached_manifest, record_addon_use},
   lock::{LockEntry, LockFile},
-  manifest::{AddonManifest, InputDef, InputType},
+  manifest::{InputDef, InputType},
   steps::{
     Rollback, append::execute_append, copy::execute_copy, create::execute_create,
     delete::execute_delete, inject::execute_inject, move_step::execute_move,
@@ -31,22 +31,30 @@ pub async fn run_addon_command(
   project_root: &Path,
 ) -> Result<()> {
   // 1. Load manifest
-  let addon_is_cached = get_cached_addon(&ctx.paths.addons, addon_id)?.is_some();
+  let addon_is_cached = super::cache::get_cached_addon(&ctx.paths.addons, addon_id)?.is_some();
+  let sp = spinner(format!("Checking addon '{addon_id}' for updates..."));
   let install_result = match install_addon(ctx, addon_id).await {
-    Ok(install_result) => install_result,
+    Ok(install_result) => {
+      sp.finish_and_clear();
+      install_result
+    }
     Err(err) if addon_is_cached && should_fallback_to_cached_manifest(&err) => {
+      sp.finish_and_clear();
       eprintln!(
         "Note: Could not check for addon updates ({}). Using cached version.",
         err
       );
       AddonInstallResult::UpToDate(read_cached_manifest(&ctx.paths.addons, addon_id)?)
     }
-    Err(err) => return Err(err),
+    Err(err) => {
+      sp.finish_and_clear();
+      return Err(err);
+    }
   };
   if let Some(message) = install_result.update_message(addon_id) {
     println!("{message}");
   }
-  let manifest: AddonManifest = install_result.into_manifest();
+  let manifest = install_result.into_manifest();
 
   // 2. Load lock file
   let mut lock = LockFile::load(project_root)?;
@@ -137,10 +145,19 @@ pub async fn run_addon_command(
   collect_inputs(&command.inputs, &mut cmd_input_values)?;
   insert_with_derived(&mut tera_ctx, &cmd_input_values);
 
+  // 9b. Warn the user before running, then ask for explicit confirmation.
+  // Addons run unsandboxed: their steps create, overwrite, move, and delete
+  // files anywhere under the project root, and an overwritten `package.json`
+  // can run arbitrary code on the next `npm install`/`build`. There is no
+  // sandbox or content signature, so the user must opt in.
+  if !confirm_addon_execution(addon_id, command_name, &command.steps)? {
+    println!("Aborted. No changes were made.");
+    return Ok(());
+  }
+
   // 10. Execute steps
   let addon_dir = ctx.paths.addons.join(addon_id);
   let mut completed_rollbacks: Vec<Rollback> = Vec::new();
-
   for (idx, step) in command.steps.iter().enumerate() {
     let result = match step {
       Step::Copy(s) => execute_copy(s, &addon_dir, project_root),
@@ -193,14 +210,53 @@ pub async fn run_addon_command(
   });
   lock.save(project_root)?;
 
+  record_addon_use(ctx, addon_id).await;
   println!("✓ Command '{}' completed successfully.", command_name);
   Ok(())
 }
 
+/// Summarises the file-system impact of a command's steps and asks the user to
+/// confirm before anything is written. Returns `Ok(true)` when the user agrees.
+///
+/// Addons are published by third parties and run without a sandbox, so this is
+/// the user's last chance to review what an addon will do to their project.
+fn confirm_addon_execution(addon_id: &str, command_name: &str, steps: &[Step]) -> Result<bool> {
+  let (mut writes, mut edits, mut removes) = (0usize, 0usize, 0usize);
+  for step in steps {
+    match step {
+      Step::Create(_) | Step::Copy(_) => writes += 1,
+      Step::Inject(_) | Step::Replace(_) | Step::Append(_) => edits += 1,
+      Step::Delete(_) | Step::Rename(_) | Step::Move(_) => removes += 1,
+    }
+  }
+
+  println!(
+    "⚠ Addon '{addon_id}' command '{command_name}' will modify files in this project \
+     ({writes} created/copied, {edits} edited, {removes} deleted/moved)."
+  );
+  println!(
+    "  Addons run unsandboxed and can overwrite source files or 'package.json'. \
+     Only run addons you trust."
+  );
+
+  Ok(
+    Confirm::new("Proceed?")
+      .with_default(false)
+      .prompt()?,
+  )
+}
+
 fn should_fallback_to_cached_manifest(error: &anyhow::Error) -> bool {
   if error.chain().any(|e| {
-    e.downcast_ref::<AnesisError>()
-      .is_some_and(|e| matches!(e, AnesisError::NotLoggedIn | AnesisError::HttpUnauthorized))
+    e.downcast_ref::<AnesisError>().is_some_and(|e| {
+      matches!(
+        e,
+        AnesisError::NotLoggedIn
+          | AnesisError::HttpUnauthorized
+          | AnesisError::NetworkTimeout
+          | AnesisError::NetworkConnect
+      )
+    })
   }) {
     return true;
   }

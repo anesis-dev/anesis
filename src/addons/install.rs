@@ -1,3 +1,4 @@
+
 use std::path::Path;
 
 use anyhow::{Context, Result};
@@ -6,7 +7,7 @@ use serde::Deserialize;
 use crate::{
   AppContext,
   auth::token::get_auth_user,
-  utils::{archive::download_and_extract, errors::classify_reqwest_error},
+  utils::{archive::download_and_extract, errors::classify_reqwest_error, ui::spinner},
 };
 
 use super::{
@@ -14,10 +15,32 @@ use super::{
   manifest::AddonManifest,
 };
 
+pub async fn record_addon_use(ctx: &AppContext, addon_id: &str) {
+  let Ok(user) = get_auth_user(&ctx.paths.auth) else {
+    return;
+  };
+  let url = format!("{}/addon/{}/use", ctx.backend_url, addon_id);
+  if let Err(e) = ctx
+    .client
+    .post(&url)
+    .bearer_auth(user.token)
+    .header("Content-Type", "application/json")
+    .send()
+    .await
+  {
+    log::warn!("Failed to record addon use event: {e:?}");
+  }
+}
+
 #[derive(Deserialize)]
 struct AddonUrlResponse {
   archive_url: String,
+  /// Bearer token for private-repo downloads, sent in the `Authorization`
+  /// header rather than embedded in `archive_url`.
+  #[serde(default)]
+  archive_token: Option<String>,
   commit_sha: String,
+  subdir: Option<String>,
 }
 
 #[derive(Debug)]
@@ -126,10 +149,12 @@ async fn get_addon_url(ctx: &AppContext, addon_id: &str) -> Result<AddonUrlRespo
 }
 
 pub async fn install_addon(ctx: &AppContext, addon_id: &str) -> Result<AddonInstallResult> {
-  let info = get_addon_url(ctx, addon_id).await?;
+  let sp = spinner(format!("Fetching info for addon '{addon_id}'..."));
+  let info = get_addon_url(ctx, addon_id)
+    .await
+    .inspect_err(|_| sp.finish_and_clear())?;
+  sp.finish_and_clear();
 
-  // The archive already contains a top-level `{addon_id}/` directory,
-  // so we extract into the addons root — files land at addons/{addon_id}/...
   let addons_dir = &ctx.paths.addons;
   let addon_dir = addons_dir.join(addon_id);
   let cached_addon = get_cached_addon(addons_dir, addon_id)
@@ -148,14 +173,34 @@ pub async fn install_addon(ctx: &AppContext, addon_id: &str) -> Result<AddonInst
     *guard = Some(addon_dir.clone());
   }
 
-  let download_result = download_and_extract(&ctx.client, &info.archive_url, addons_dir, None)
-    .await
-    .with_context(|| {
-      format!(
-        "Failed to download and extract addon '{addon_id}' from {}",
-        info.archive_url
-      )
-    });
+  // On update, wipe the existing addon dir so files removed in the new
+  // revision don't linger from the previous one.
+  if install_state == InstallState::Update && addon_dir.exists() {
+    std::fs::remove_dir_all(&addon_dir)
+      .with_context(|| format!("Failed to clear stale addon at {}", addon_dir.display()))?;
+  }
+
+  let action = if install_state == InstallState::Update {
+    "Updating"
+  } else {
+    "Downloading"
+  };
+  let sp = spinner(format!("{action} addon '{addon_id}'..."));
+  let download_result = download_and_extract(
+    &ctx.client,
+    &info.archive_url,
+    &addon_dir,
+    info.subdir.as_deref(),
+    info.archive_token.as_deref(),
+  )
+  .await
+  .with_context(|| {
+    format!(
+      "Failed to download and extract addon '{addon_id}' from {}",
+      info.archive_url
+    )
+  });
+  sp.finish_and_clear();
 
   {
     let mut guard = ctx.cleanup_state.lock().unwrap_or_else(|e| e.into_inner());

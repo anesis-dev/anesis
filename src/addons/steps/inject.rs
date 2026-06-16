@@ -65,11 +65,16 @@ pub fn execute_inject(
       file_lines = new_lines;
     }
 
+    let had_trailing_newline = original.last().copied() == Some(b'\n');
     rollbacks.push(Rollback::RestoreFile {
       path: path.clone(),
       original,
     });
-    std::fs::write(&path, file_lines.join("\n"))?;
+    let mut new_content = file_lines.join("\n");
+    if had_trailing_newline {
+      new_content.push('\n');
+    }
+    std::fs::write(&path, new_content)?;
   }
 
   Ok(rollbacks)

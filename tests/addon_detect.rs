@@ -1,8 +1,8 @@
-use assert_fs::prelude::*;
-use anesis_cli::addons::{
+use anesis::addons::{
   detect::detect_variant,
   manifest::{DetectBlock, DetectRule, MatchMode},
 };
+use assert_fs::prelude::*;
 
 #[test]
 fn file_exists_matches() {
@@ -545,7 +545,10 @@ fn json_contains_negate_matches_when_key_absent() {
     match_mode: MatchMode::Any,
   }];
 
-  assert_eq!(detect_variant(&detect, dir.path()), Some("no-express".into()));
+  assert_eq!(
+    detect_variant(&detect, dir.path()),
+    Some("no-express".into())
+  );
 }
 
 #[test]

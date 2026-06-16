@@ -1,4 +1,4 @@
-use anesis_cli::addons::lock::{LockEntry, LockFile};
+use anesis::addons::lock::{LockEntry, LockFile};
 
 fn sample_entry(id: &str) -> LockEntry {
   LockEntry {

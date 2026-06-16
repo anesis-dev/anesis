@@ -89,14 +89,13 @@ fn hint_for_anesis_error(err: &AnesisError) -> Option<&'static str> {
   match err {
     AnesisError::NotLoggedIn => Some("Run `anesis login` to authenticate."),
     AnesisError::HttpUnauthorized => Some("Run `anesis login` to re-authenticate."),
-    AnesisError::HttpNotFound(_) => {
-      Some("Check the name is correct and that you have access.")
-    }
+    AnesisError::HttpNotFound(_) => Some("Check the name is correct and that you have access."),
     AnesisError::HttpServerError(_) => {
       Some("This is likely a temporary issue. Try again in a moment.")
     }
-    AnesisError::NetworkConnect | AnesisError::NetworkTimeout => {
-      Some("Check your internet connection and try again.")
+    AnesisError::NetworkConnect => Some("Check your internet connection and try again."),
+    AnesisError::NetworkTimeout => {
+      Some("The server may be starting up (cold start). Wait a moment and try again.")
     }
   }
 }
@@ -123,12 +122,16 @@ fn friendly_reqwest_message(err: &reqwest::Error) -> String {
 }
 
 fn hint_for_reqwest_error(err: &reqwest::Error) -> Option<&'static str> {
-  if err.is_connect() || err.is_timeout() {
+  if err.is_connect() {
     return Some("Check your internet connection and try again.");
   }
-  if err.status().is_some_and(|s| {
-    s == reqwest::StatusCode::UNAUTHORIZED || s == reqwest::StatusCode::FORBIDDEN
-  }) {
+  if err.is_timeout() {
+    return Some("The server may be starting up (cold start). Wait a moment and try again.");
+  }
+  if err
+    .status()
+    .is_some_and(|s| s == reqwest::StatusCode::UNAUTHORIZED || s == reqwest::StatusCode::FORBIDDEN)
+  {
     return Some("Run `anesis login` to re-authenticate.");
   }
   None

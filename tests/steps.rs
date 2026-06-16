@@ -1,5 +1,4 @@
-use assert_fs::prelude::*;
-use anesis_cli::addons::{
+use anesis::addons::{
   manifest::{
     AppendStep, CopyStep, CreateStep, DeleteStep, IfExists, IfNotFound, InjectStep, MoveStep,
     RenameStep, ReplaceStep, Target,
@@ -10,6 +9,7 @@ use anesis_cli::addons::{
     rename::execute_rename, render_lines, render_string, replace::execute_replace,
   },
 };
+use assert_fs::prelude::*;
 
 fn empty_ctx() -> tera::Context {
   tera::Context::new()

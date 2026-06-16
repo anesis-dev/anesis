@@ -1,6 +1,6 @@
 mod common;
 
-use anesis_cli::upgrade::render_upgrade_notice;
+use anesis::upgrade::render_upgrade_notice;
 use chrono::{TimeZone, Utc};
 use common::{
   asset_filename_for_tests, is_cache_fresh_for_tests, is_newer_version_for_tests,

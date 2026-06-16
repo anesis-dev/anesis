@@ -1,4 +1,7 @@
-use std::{fs, path::{Path, PathBuf}};
+use std::{
+  fs,
+  path::{Path, PathBuf},
+};
 
 use anyhow::Result;
 
@@ -20,7 +23,7 @@ pub fn setup_ctrlc_handler(
       && path.exists()
     {
       if let Err(e) = fs::remove_dir_all(&path) {
-        println!("Failed to remove: {}", e);
+        eprintln!("Failed to remove: {}", e);
       }
 
       let mut current = path.parent();

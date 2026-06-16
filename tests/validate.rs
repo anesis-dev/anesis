@@ -1,4 +1,4 @@
-use anesis_cli::utils::validate::{
+use anesis::utils::validate::{
   is_valid_github_repo_url, validate_project_name, validate_template_name,
 };
 

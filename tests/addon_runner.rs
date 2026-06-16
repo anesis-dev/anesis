@@ -1,8 +1,8 @@
 mod common;
 
+use anesis::utils::errors::AnesisError;
 use anyhow::anyhow;
 use common::{rerun_prompt_message_for_tests, should_fallback_to_cached_manifest_for_tests};
-use anesis_cli::utils::errors::AnesisError;
 
 #[test]
 fn fallback_to_cached_manifest_when_user_is_not_logged_in() {
