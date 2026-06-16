@@ -55,14 +55,14 @@ impl AppContext {
   /// Constructs the context, resolving backend/frontend URLs from environment
   /// variables with sensible localhost defaults for local development.
   pub fn new(paths: AnesisPaths, client: Client, cleanup_state: CleanupState) -> Self {
-    let backend_url =
-      std::env::var("ANESIS_BACKEND_URL").unwrap_or_else(|_| "http://localhost:4000".to_string());
-    let frontend_url =
-      std::env::var("ANESIS_FRONTEND_URL").unwrap_or_else(|_| "http://localhost:3000".to_string());
-    // let backend_url = std::env::var("ANESIS_BACKEND_URL")
-    //   .unwrap_or_else(|_| "https://anesis-server.onrender.com".to_string());
-    // let frontend_url = std::env::var("ANESIS_FRONTEND_URL")
-    //   .unwrap_or_else(|_| "https://anesis-dev.vercel.app".to_string());
+    // let backend_url =
+    //   std::env::var("ANESIS_BACKEND_URL").unwrap_or_else(|_| "http://localhost:4000".to_string());
+    // let frontend_url =
+    //   std::env::var("ANESIS_FRONTEND_URL").unwrap_or_else(|_| "http://localhost:3000".to_string());
+    let backend_url = std::env::var("ANESIS_BACKEND_URL")
+      .unwrap_or_else(|_| "https://anesis-server.onrender.com".to_string());
+    let frontend_url = std::env::var("ANESIS_FRONTEND_URL")
+      .unwrap_or_else(|_| "https://anesis-dev.vercel.app".to_string());
     Self {
       paths,
       client,
