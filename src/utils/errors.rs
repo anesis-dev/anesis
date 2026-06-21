@@ -17,8 +17,6 @@ pub enum AnesisError {
   NetworkTimeout,
 }
 
-/// Converts a `reqwest::Error` into an `anyhow::Error`, mapping well-known
-/// error kinds to typed `AnesisError` variants so `print_error` can add hints.
 pub fn classify_reqwest_error(err: reqwest::Error, resource: &str) -> anyhow::Error {
   if err.is_connect() {
     return AnesisError::NetworkConnect.into();
@@ -40,16 +38,12 @@ pub fn classify_reqwest_error(err: reqwest::Error, resource: &str) -> anyhow::Er
   anyhow::anyhow!("Network error while fetching {resource}")
 }
 
-/// Prints an error to stderr in a user-friendly format.
-///
-/// Set `ANESIS_DEBUG=1` to see the full error chain for debugging.
 pub fn print_error(err: &anyhow::Error) {
   if std::env::var("ANESIS_DEBUG").is_ok() {
     eprintln!("{} {:?}", "error:".red().bold(), err);
     return;
   }
 
-  // Check for AnesisError anywhere in the chain — use outermost message + hint.
   for cause in err.chain() {
     if let Some(anesis_err) = cause.downcast_ref::<AnesisError>() {
       eprintln!("{} {}", "error:".red().bold(), err);
@@ -60,11 +54,8 @@ pub fn print_error(err: &anyhow::Error) {
     }
   }
 
-  // Check for a raw reqwest error in the chain.
   for cause in err.chain() {
     if let Some(reqwest_err) = cause.downcast_ref::<reqwest::Error>() {
-      // If reqwest is the outermost error, replace with a friendly message.
-      // Otherwise the outermost with_context message is already human-readable.
       if err.downcast_ref::<reqwest::Error>().is_some() {
         eprintln!(
           "{} {}",
@@ -81,7 +72,6 @@ pub fn print_error(err: &anyhow::Error) {
     }
   }
 
-  // Default: print the outermost anyhow message (already readable via with_context).
   eprintln!("{} {}", "error:".red().bold(), err);
 }
 

@@ -1,22 +1,13 @@
-//! Binary entry point for the `anesis` CLI.
-//!
-//! Initialises logging, loads `.env` if present, handles shell completion
-//! early-exit, and dispatches every subcommand to the appropriate handler.
-//! All fallible work is pushed into [`run`] so that [`main`] can uniformly
-//! print errors and exit with a non-zero code.
-
-use std::time::Duration;
-
 use anesis::{
-  AppContext, CleanupState, addons,
+  addons,
   auth::{account::print_user_info, login::login, logout::logout},
   cache::{get_installed_templates, remove_template_from_cache},
   cli::{
     self,
     commands::{AddonCommands, Commands, TemplateCommands, UseCommands},
   },
-  completions,
-  paths::AnesisPaths,
+  completions, config,
+  context::AppContext,
   templates::{
     generator::extract_template,
     install::{InstallResult, install_template, record_template_use},
@@ -26,23 +17,16 @@ use anesis::{
   },
   upgrade::{check_cli_version_cached, render_upgrade_notice, upgrade_cli},
   utils::{
-    cleanup::setup_ctrlc_handler,
     errors::print_error,
     ui::spinner,
     validate::{is_valid_github_repo_url, validate_project_name, validate_template_name},
   },
 };
 use anyhow::{Context, Result};
-use reqwest::Client;
-use std::sync::{Arc, Mutex};
 
 #[tokio::main]
 async fn main() {
-  env_logger::init();
-  // Load .env files for local development; ignore if absent in production.
-  dotenvy::dotenv().ok();
-  // If the shell completion environment variable is set, print the completion
-  // script and exit immediately — no other initialisation needed.
+  config::init_env();
   completions::complete_env();
   if let Err(err) = run().await {
     print_error(&err);
@@ -52,29 +36,12 @@ async fn main() {
 
 async fn run() -> Result<()> {
   let cli = cli::parse();
-  let anesis_paths = AnesisPaths::new()?;
-  // Ensure ~/.anesis/{cache,templates,addons} exist before any command runs.
-  anesis_paths.ensure_directories()?;
-  let client = Client::builder()
-    .connect_timeout(Duration::from_secs(10))
-    // 90s covers slow template downloads from GitHub tarballs.
-    .timeout(Duration::from_secs(90))
-    .build()?;
-  // Shared between the main task and the Ctrl+C signal handler thread.
-  let cleanup_state: CleanupState = Arc::new(Mutex::new(None));
+  let ctx = config::build_app_context()?;
 
-  setup_ctrlc_handler(cleanup_state.clone(), anesis_paths.templates.clone())?;
-
-  let ctx = AppContext::new(anesis_paths, client, cleanup_state);
-
-  // Skip the version-check background task for commands that don't need it
-  // (Upgrade already checks, and Completions is a pure offline operation).
   let skip_version_notice = matches!(
     &cli.command,
     Commands::Upgrade | Commands::Completions { .. }
   );
-  // Spawn the version check concurrently so it doesn't block the main command.
-  // We await the handle at the very end to display the notice after output.
   let version_check_handle = if skip_version_notice {
     None
   } else {
@@ -203,9 +170,6 @@ async fn run() -> Result<()> {
     }
   }
 
-  // Display the upgrade notice after the command output so it doesn't
-  // get mixed with command results.  Double `Ok(…)` unwrap: outer is the
-  // JoinHandle result, inner is the async fn result.
   if let Some(version_check_handle) = version_check_handle
     && let Ok(Ok(Some(latest_version))) = version_check_handle.await
   {
@@ -215,22 +179,30 @@ async fn run() -> Result<()> {
   Ok(())
 }
 
-/// Resolves template files (installing from registry if needed), renders them
-/// with Tera, and writes the project directory.  Use analytics are recorded
-/// after a successful generation, but only for registry (non-linked) templates.
 async fn create_new_project(
   ctx: &AppContext,
   project_name: &str,
   template_name: &str,
 ) -> Result<()> {
   let files = get_files(ctx, template_name).await?;
-  println!("Generating project '{project_name}' from template '{template_name}'...");
+  if project_name != "." {
+    println!("Generating project '{project_name}' from template '{template_name}'...");
+  } else {
+    println!("Generating project from template '{template_name}'...");
+  }
+
   extract_template(&files, project_name)?;
+
   let sp = spinner("Finishing up...");
   record_template_use(ctx, template_name).await;
   sp.finish_and_clear();
-  println!("✅ Project '{project_name}' created successfully!");
-  println!("\nNext steps:");
-  println!("  cd {}", project_name);
+
+  if project_name != "." {
+    println!("✅ Project '{project_name}' created successfully!");
+    println!("\nNext steps:");
+    println!("  cd {}", project_name);
+  } else {
+    println!("✅ Project created successfully!");
+  }
   Ok(())
 }

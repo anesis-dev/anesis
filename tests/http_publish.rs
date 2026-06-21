@@ -6,8 +6,8 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use anesis::{
-  AppContext,
   addons::{publish::publish_addon, update::update_addon},
+  context::AppContext,
   paths::AnesisPaths,
   templates::{publish::publish, update::update},
   utils::errors::AnesisError,

@@ -5,7 +5,7 @@ use std::{
 
 use anyhow::Result;
 
-use crate::CleanupState;
+use crate::context::CleanupState;
 
 pub fn setup_ctrlc_handler(
   cleanup_state: CleanupState,
@@ -44,8 +44,6 @@ pub fn setup_ctrlc_handler(
   Ok(())
 }
 
-/// Removes `cleanup_path` and then walks up the tree removing empty parent
-/// directories until `template_root` is reached.
 #[doc(hidden)]
 pub fn cleanup_incomplete_template_for_tests(cleanup_path: &Path, template_root: &Path) {
   if !cleanup_path.exists() {

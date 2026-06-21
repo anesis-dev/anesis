@@ -1,7 +1,7 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::{AppContext, auth::token::get_auth_user, utils::ui::spinner};
+use crate::{auth::token::get_auth_user, context::AppContext, utils::ui::spinner};
 
 #[derive(Serialize)]
 struct PublishAddonDto {

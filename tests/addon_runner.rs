@@ -50,11 +50,17 @@ fn should_fallback_for_http_unauthorized() {
 }
 
 #[test]
-fn should_not_fallback_for_network_connect_anesis_error() {
-  // AnesisError::NetworkConnect is NOT in the fallback list — the fallback only
-  // checks for raw reqwest::Error is_connect(), not the wrapped enum variant.
+fn should_fallback_for_network_connect_anesis_error() {
+  // A connection failure is a transient/offline condition, so the runner falls
+  // back to the cached manifest rather than aborting the command.
   let error = anyhow::Error::from(AnesisError::NetworkConnect);
-  assert!(!should_fallback_to_cached_manifest_for_tests(&error));
+  assert!(should_fallback_to_cached_manifest_for_tests(&error));
+}
+
+#[test]
+fn should_fallback_for_network_timeout_anesis_error() {
+  let error = anyhow::Error::from(AnesisError::NetworkTimeout);
+  assert!(should_fallback_to_cached_manifest_for_tests(&error));
 }
 
 #[test]

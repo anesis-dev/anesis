@@ -1,9 +1,9 @@
 use anesis::{
-  AppContext,
   cache::{
     TemplatesCache, get_cached_template, get_installed_templates, is_template_installed,
     remove_template_from_cache, update_templates_cache,
   },
+  context::AppContext,
   paths::AnesisPaths,
 };
 use assert_fs::prelude::*;

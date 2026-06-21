@@ -5,7 +5,7 @@ use inquire::{Confirm, Select, Text};
 use reqwest::StatusCode;
 
 use crate::{
-  AppContext,
+  context::AppContext,
   templates::generator::{to_camel_case, to_kebab_case, to_pascal_case, to_snake_case},
   utils::{errors::AnesisError, ui::spinner},
 };
@@ -30,7 +30,6 @@ pub async fn run_addon_command(
   command_name: &str,
   project_root: &Path,
 ) -> Result<()> {
-  // 1. Load manifest
   let addon_is_cached = super::cache::get_cached_addon(&ctx.paths.addons, addon_id)?.is_some();
   let sp = spinner(format!("Checking addon '{addon_id}' for updates..."));
   let install_result = match install_addon(ctx, addon_id).await {
@@ -56,13 +55,8 @@ pub async fn run_addon_command(
   }
   let manifest = install_result.into_manifest();
 
-  // 2. Load lock file
   let mut lock = LockFile::load(project_root)?;
 
-  // 3. Check `once`
-  // (deferred until we find the command below, after variant detection)
-
-  // 4. Check addon deps (`requires`)
   for dep_id in &manifest.requires {
     if !is_addon_installed(&ctx.paths.addons, dep_id)? {
       return Err(anyhow!(
@@ -74,18 +68,14 @@ pub async fn run_addon_command(
     }
   }
 
-  // 5. Collect manifest-level inputs
   let mut input_values: HashMap<String, String> = HashMap::new();
   collect_inputs(&manifest.inputs, &mut input_values)?;
 
-  // 6. Build Tera context from manifest inputs + derived case variants
   let mut tera_ctx = tera::Context::new();
   insert_with_derived(&mut tera_ctx, &input_values);
 
-  // 7. Detect variant
   let detected_id = detect_variant(&manifest.detect, project_root);
 
-  // 8. Select variant
   let variant = manifest
     .variants
     .iter()
@@ -93,7 +83,6 @@ pub async fn run_addon_command(
     .or_else(|| manifest.variants.iter().find(|v| v.when.is_none()))
     .ok_or_else(|| anyhow!("No matching variant found for addon '{}'", addon_id))?;
 
-  // 9. Find command
   let command = variant
     .commands
     .iter()
@@ -106,7 +95,6 @@ pub async fn run_addon_command(
       )
     })?;
 
-  // 3. Check `once` (now that we have the command)
   if command.once && lock.is_command_executed(addon_id, command_name) {
     if let Some(prompt_message) = rerun_prompt_message(
       command_name,
@@ -127,7 +115,6 @@ pub async fn run_addon_command(
     }
   }
 
-  // 4b. Check `requires_commands`
   for req_cmd in &command.requires_commands {
     if !lock.is_command_executed(addon_id, req_cmd) {
       return Err(anyhow!(
@@ -140,22 +127,15 @@ pub async fn run_addon_command(
     }
   }
 
-  // 5b. Collect command-level inputs and add to context
   let mut cmd_input_values: HashMap<String, String> = HashMap::new();
   collect_inputs(&command.inputs, &mut cmd_input_values)?;
   insert_with_derived(&mut tera_ctx, &cmd_input_values);
 
-  // 9b. Warn the user before running, then ask for explicit confirmation.
-  // Addons run unsandboxed: their steps create, overwrite, move, and delete
-  // files anywhere under the project root, and an overwritten `package.json`
-  // can run arbitrary code on the next `npm install`/`build`. There is no
-  // sandbox or content signature, so the user must opt in.
   if !confirm_addon_execution(addon_id, command_name, &command.steps)? {
     println!("Aborted. No changes were made.");
     return Ok(());
   }
 
-  // 10. Execute steps
   let addon_dir = ctx.paths.addons.join(addon_id);
   let mut completed_rollbacks: Vec<Rollback> = Vec::new();
   for (idx, step) in command.steps.iter().enumerate() {
@@ -191,7 +171,6 @@ pub async fn run_addon_command(
     }
   }
 
-  // 11. Update lock
   let variant_id = detected_id.unwrap_or_else(|| "universal".to_string());
   let mut commands_executed = lock
     .addons
@@ -215,11 +194,6 @@ pub async fn run_addon_command(
   Ok(())
 }
 
-/// Summarises the file-system impact of a command's steps and asks the user to
-/// confirm before anything is written. Returns `Ok(true)` when the user agrees.
-///
-/// Addons are published by third parties and run without a sandbox, so this is
-/// the user's last chance to review what an addon will do to their project.
 fn confirm_addon_execution(addon_id: &str, command_name: &str, steps: &[Step]) -> Result<bool> {
   let (mut writes, mut edits, mut removes) = (0usize, 0usize, 0usize);
   for step in steps {
@@ -239,11 +213,7 @@ fn confirm_addon_execution(addon_id: &str, command_name: &str, steps: &[Step]) -
      Only run addons you trust."
   );
 
-  Ok(
-    Confirm::new("Proceed?")
-      .with_default(false)
-      .prompt()?,
-  )
+  Ok(Confirm::new("Proceed?").with_default(false).prompt()?)
 }
 
 fn should_fallback_to_cached_manifest(error: &anyhow::Error) -> bool {
@@ -304,7 +274,6 @@ pub fn rerun_prompt_message_for_tests(
   rerun_prompt_message(command_name, locked_version, current_version)
 }
 
-/// Prompts for a list of inputs and inserts results into `map`.
 fn collect_inputs(inputs: &[InputDef], map: &mut HashMap<String, String>) -> Result<()> {
   for input in inputs {
     let value = match input.input_type {
@@ -335,8 +304,6 @@ fn collect_inputs(inputs: &[InputDef], map: &mut HashMap<String, String>) -> Res
   Ok(())
 }
 
-/// Inserts every key/value from `map` into `ctx`, plus derived case variants:
-/// `{key}_pascal`, `{key}_camel`, `{key}_kebab`, `{key}_snake`.
 fn insert_with_derived(ctx: &mut tera::Context, map: &HashMap<String, String>) {
   for (k, v) in map {
     ctx.insert(k.as_str(), v);

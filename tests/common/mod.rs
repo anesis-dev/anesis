@@ -1,5 +1,9 @@
 // Re-exports of test utilities from src modules
-// This centralizes all _for_tests functions in one place
+// This centralizes all _for_tests functions in one place.
+//
+// Each integration test binary pulls in this module via `mod common;` but only
+// uses the subset of helpers it needs, so the unused re-exports are expected.
+#![allow(unused_imports)]
 
 // Auth utilities
 pub use anesis::auth::login::{generate_state_token_for_tests, write_auth_file_for_tests};

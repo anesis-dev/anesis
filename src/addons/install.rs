@@ -1,12 +1,11 @@
-
 use std::path::Path;
 
 use anyhow::{Context, Result};
 use serde::Deserialize;
 
 use crate::{
-  AppContext,
   auth::token::get_auth_user,
+  context::AppContext,
   utils::{archive::download_and_extract, errors::classify_reqwest_error, ui::spinner},
 };
 
@@ -35,8 +34,6 @@ pub async fn record_addon_use(ctx: &AppContext, addon_id: &str) {
 #[derive(Deserialize)]
 struct AddonUrlResponse {
   archive_url: String,
-  /// Bearer token for private-repo downloads, sent in the `Authorization`
-  /// header rather than embedded in `archive_url`.
   #[serde(default)]
   archive_token: Option<String>,
   commit_sha: String,
@@ -173,8 +170,6 @@ pub async fn install_addon(ctx: &AppContext, addon_id: &str) -> Result<AddonInst
     *guard = Some(addon_dir.clone());
   }
 
-  // On update, wipe the existing addon dir so files removed in the new
-  // revision don't linger from the previous one.
   if install_state == InstallState::Update && addon_dir.exists() {
     std::fs::remove_dir_all(&addon_dir)
       .with_context(|| format!("Failed to clear stale addon at {}", addon_dir.display()))?;

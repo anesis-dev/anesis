@@ -26,14 +26,14 @@ fn is_newer_version_compares_numeric_components() {
 }
 
 #[test]
-fn asset_filename_appends_exe_for_windows_builds() {
+fn asset_filename_uses_zip_for_windows_builds() {
   assert_eq!(
     asset_filename_for_tests("windows-x86_64"),
-    "anesis-windows-x86_64.exe"
+    "anesis-windows-x86_64.zip"
   );
   assert_eq!(
     asset_filename_for_tests("linux-x86_64"),
-    "anesis-linux-x86_64"
+    "anesis-linux-x86_64.tar.gz"
   );
 }
 
@@ -42,7 +42,7 @@ fn release_asset_url_uses_expected_github_pattern() {
   let asset_url = release_asset_url_for_tests("1.2.3", "linux-x86_64");
   assert_eq!(
     asset_url,
-    "https://github.com/anesis-dev/anesis/releases/download/v1.2.3/anesis-linux-x86_64"
+    "https://github.com/anesis-dev/anesis/releases/download/v1.2.3/anesis-linux-x86_64.tar.gz"
   );
 }
 
@@ -127,10 +127,10 @@ fn is_newer_version_major_bump() {
 }
 
 #[test]
-fn asset_filename_for_macos_has_no_extension() {
+fn asset_filename_for_macos_uses_tar_gz() {
   assert_eq!(
     asset_filename_for_tests("macos-aarch64"),
-    "anesis-macos-aarch64"
+    "anesis-macos-aarch64.tar.gz"
   );
 }
 

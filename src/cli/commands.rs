@@ -1,16 +1,8 @@
-//! Clap `Subcommand` enums that define every CLI subcommand and their arguments.
-//!
-//! The hierarchy is:
-//! - [`Commands`]        — top-level subcommands (`new`, `template`, `addon`, …)
-//! - [`TemplateCommands`] — subcommands under `anesis template`
-//! - [`AddonCommands`]   — subcommands under `anesis addon`
-//! - [`UseCommands`]     — catch-all under `anesis use` (uses `external_subcommand`)
 
 use clap::Subcommand;
 
 use crate::completions::CompletionShell;
 
-/// Subcommands available under `anesis addon`.
 #[derive(Subcommand)]
 pub enum AddonCommands {
   #[command(alias = "i", about = "Install and cache an addon (anesis addon i)")]
@@ -76,7 +68,6 @@ pub enum AddonCommands {
 
 }
 
-/// Subcommands available under `anesis template`.
 #[derive(Subcommand)]
 pub enum TemplateCommands {
   #[command(
@@ -157,17 +148,12 @@ pub enum TemplateCommands {
 
 }
 
-/// The `anesis use` subcommand uses `external_subcommand` so clap captures
-/// all remaining arguments as a `Vec<String>` without defining named
-/// subcommands.  The runner then interprets `args[0]` as the addon ID and
-/// `args[1]` as the command name.
 #[derive(Subcommand)]
 pub enum UseCommands {
   #[command(external_subcommand)]
   External(Vec<String>),
 }
 
-/// Top-level subcommands for the `anesis` binary.
 #[derive(Subcommand)]
 pub enum Commands {
   #[command(alias = "n", about = "Create a new project from a template (anesis n)")]

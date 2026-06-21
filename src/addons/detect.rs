@@ -2,7 +2,6 @@ use std::path::Path;
 
 use crate::addons::manifest::{DetectBlock, DetectRule, MatchMode};
 
-/// Returns the ID of the first matching DetectBlock, or None (→ use universal variant).
 pub fn detect_variant(detect: &[DetectBlock], project_root: &Path) -> Option<String> {
   for block in detect {
     let matches = match block.match_mode {
@@ -89,8 +88,6 @@ fn traverse_json(mut v: &serde_json::Value, key_path: &str, expected: Option<&st
     None => true,
     Some(expected) => match v {
       serde_json::Value::String(s) => s == expected,
-      // Allow: intentionally converts numeric/boolean JSON values to their
-      // string representation so manifests can match e.g. `value: "true"`.
       #[allow(clippy::cmp_owned)]
       other => other.to_string() == expected,
     },
@@ -108,7 +105,6 @@ fn traverse_toml(mut v: &toml::Value, key_path: &str, expected: Option<&str>) ->
     None => true,
     Some(expected) => match v {
       toml::Value::String(s) => s == expected,
-      // Allow: intentionally converts numeric/boolean TOML values to string.
       #[allow(clippy::cmp_owned)]
       other => other.to_string() == expected,
     },

@@ -11,9 +11,6 @@ pub fn execute_delete(step: &DeleteStep, project_root: &Path) -> Result<Vec<Roll
   let mut rollbacks = Vec::new();
 
   for path in paths {
-    // Only delete regular files. Skip directories and missing paths so that
-    // a glob target that matches both files and directories doesn't blow up
-    // mid-step (and to avoid recursively removing unintended trees).
     if !path.is_file() {
       continue;
     }
