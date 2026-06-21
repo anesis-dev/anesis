@@ -191,7 +191,7 @@ async fn create_new_project(
     println!("Generating project from template '{template_name}'...");
   }
 
-  extract_template(&files, project_name)?;
+  extract_template(&files, project_name, ctx)?;
 
   let sp = spinner("Finishing up...");
   record_template_use(ctx, template_name).await;

@@ -5,6 +5,7 @@ pub mod cli;
 pub mod completions;
 pub mod config;
 pub mod context;
+pub mod manifest;
 pub mod paths;
 pub mod templates;
 pub mod upgrade;

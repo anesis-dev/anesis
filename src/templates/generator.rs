@@ -1,4 +1,3 @@
-
 use std::{
   fs,
   path::{Component, Path, PathBuf},
@@ -7,9 +6,18 @@ use std::{
 use anyhow::{Result, anyhow};
 use tera::{Context, Tera};
 
-use crate::templates::TemplateFile;
+use crate::{
+  cache::get_cached_template,
+  context::AppContext,
+  manifest::AnesisManifest,
+  templates::{AnesisTemplate, TemplateFile},
+};
 
-pub fn extract_template(files: &[TemplateFile], project_name: &str) -> Result<()> {
+pub fn extract_template(
+  files: &[TemplateFile],
+  project_name: &str,
+  ctx: &AppContext,
+) -> Result<()> {
   let output_path = PathBuf::from(project_name);
   fs::create_dir_all(&output_path)?;
 
@@ -20,7 +28,7 @@ pub fn extract_template(files: &[TemplateFile], project_name: &str) -> Result<()
 
   let mut tera = Tera::default();
 
-  extract_dir_contents(files, &output_path, &mut tera, &context)?;
+  extract_dir_contents(files, &output_path, &mut tera, &context, ctx)?;
 
   Ok(())
 }
@@ -103,6 +111,7 @@ pub fn extract_dir_contents(
   base_path: &Path,
   tera: &mut Tera,
   context: &Context,
+  ctx: &AppContext,
 ) -> Result<()> {
   for file in files {
     let file_name = file
@@ -110,6 +119,16 @@ pub fn extract_dir_contents(
       .file_name()
       .ok_or_else(|| anyhow::anyhow!("Invalid file path: {}", file.path.display()))?;
     let file_name_str = file_name.to_string_lossy();
+    if file_name_str == "anesis.template.json" {
+      let template: AnesisTemplate = serde_json::from_slice(&file.contents)?;
+      let template_name = template.name;
+      let cached_template = get_cached_template(ctx, &template_name)?.ok_or_else(|| {
+        anyhow!("template '{template_name}' not found in cache; cannot write anesis.json")
+      })?;
+      AnesisManifest::new(&template_name, &cached_template.commit_sha, Vec::new())
+        .write(base_path)?;
+      continue;
+    }
     let template_key = file.path.to_string_lossy();
 
     let output_path = safe_template_path(base_path, &file.path)?;

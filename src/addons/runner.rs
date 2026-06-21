@@ -6,6 +6,7 @@ use reqwest::StatusCode;
 
 use crate::{
   context::AppContext,
+  manifest::AnesisManifest,
   templates::generator::{to_camel_case, to_kebab_case, to_pascal_case, to_snake_case},
   utils::{errors::AnesisError, ui::spinner},
 };
@@ -190,6 +191,10 @@ pub async fn run_addon_command(
   lock.save(project_root)?;
 
   record_addon_use(ctx, addon_id).await;
+
+  if let Err(err) = AnesisManifest::add_addon(addon_id, project_root) {
+    eprintln!("Note: could not update anesis.json ({err}).");
+  }
   println!("✓ Command '{}' completed successfully.", command_name);
   Ok(())
 }
