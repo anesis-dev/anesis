@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::Path};
+use std::{collections::HashMap, fs, path::Path};
 
 use anyhow::{Result, anyhow};
 use inquire::{Confirm, Select, Text};
@@ -163,7 +163,7 @@ pub async fn run_addon_command(
 
         if choice == "Rollback all changes" {
           for rollback in completed_rollbacks.into_iter().rev() {
-            let _ = apply_rollback(rollback);
+            let _ = apply_rollback(rollback, project_root);
           }
         }
 
@@ -319,10 +319,21 @@ fn insert_with_derived(ctx: &mut tera::Context, map: &HashMap<String, String>) {
   }
 }
 
-fn apply_rollback(rollback: Rollback) -> Result<()> {
+fn apply_rollback(rollback: Rollback, project_root: &Path) -> Result<()> {
   match rollback {
     Rollback::DeleteCreatedFile { path } => {
-      let _ = std::fs::remove_file(path);
+      let _ = std::fs::remove_file(&path);
+      let mut dir = path.parent();
+      while let Some(d) = dir {
+        if d == project_root {
+          break;
+        }
+
+        if fs::remove_dir(d).is_err() {
+          break;
+        }
+        dir = d.parent()
+      }
     }
     Rollback::RestoreFile { path, original } => {
       std::fs::write(path, original)?;
