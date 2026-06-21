@@ -14,7 +14,7 @@ It supports:
 
 ## Official website
 
-The official Anesis website is [anesis.vercel.app](https://anesis.vercel.app/).
+The official Anesis website is [anesis-dev.vercel.app](https://anesis-dev.vercel.app/).
 
 Use it as the main guide for learning and using Anesis:
 
