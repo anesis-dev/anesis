@@ -1,4 +1,3 @@
-
 use clap::Subcommand;
 
 use crate::completions::CompletionShell;
@@ -65,7 +64,6 @@ pub enum AddonCommands {
     #[arg(long, value_name = "UUID", help = "Organization ID")]
     org_id: Option<String>,
   },
-
 }
 
 #[derive(Subcommand)]
@@ -145,7 +143,6 @@ pub enum TemplateCommands {
     #[arg(long, value_name = "UUID", help = "Organization ID")]
     org_id: Option<String>,
   },
-
 }
 
 #[derive(Subcommand)]

@@ -55,7 +55,14 @@ fn renders_tera_file_and_strips_extension() {
   }];
 
   let mut tera = Tera::default();
-  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("my-app"), &make_app_context()).unwrap();
+  extract_dir_contents(
+    &files,
+    dir.path(),
+    &mut tera,
+    &make_context("my-app"),
+    &make_app_context(),
+  )
+  .unwrap();
 
   let content = std::fs::read_to_string(dir.path().join("README.md")).unwrap();
   assert_eq!(content, "# my-app");
@@ -70,7 +77,14 @@ fn copies_non_tera_file_unchanged() {
   }];
 
   let mut tera = Tera::default();
-  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("my-app"), &make_app_context()).unwrap();
+  extract_dir_contents(
+    &files,
+    dir.path(),
+    &mut tera,
+    &make_context("my-app"),
+    &make_app_context(),
+  )
+  .unwrap();
 
   let content = std::fs::read_to_string(dir.path().join("src").join("index.ts")).unwrap();
   assert_eq!(content, "console.log('hello')");
@@ -85,7 +99,14 @@ fn template_vars_kebab_and_snake() {
   }];
 
   let mut tera = Tera::default();
-  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("My_Project"), &make_app_context()).unwrap();
+  extract_dir_contents(
+    &files,
+    dir.path(),
+    &mut tera,
+    &make_context("My_Project"),
+    &make_app_context(),
+  )
+  .unwrap();
 
   let content = std::fs::read_to_string(dir.path().join("out.txt")).unwrap();
   assert_eq!(content, "my-project my_project");
@@ -100,7 +121,14 @@ fn creates_nested_output_directories() {
   }];
 
   let mut tera = Tera::default();
-  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("app"), &make_app_context()).unwrap();
+  extract_dir_contents(
+    &files,
+    dir.path(),
+    &mut tera,
+    &make_context("app"),
+    &make_app_context(),
+  )
+  .unwrap();
 
   assert!(dir.path().join("src/components/Button.tsx").exists());
 }
@@ -176,7 +204,13 @@ fn path_traversal_blocked_by_extract_dir_contents() {
   }];
 
   let mut tera = Tera::default();
-  let result = extract_dir_contents(&files, dir.path(), &mut tera, &make_context("app"), &make_app_context());
+  let result = extract_dir_contents(
+    &files,
+    dir.path(),
+    &mut tera,
+    &make_context("app"),
+    &make_app_context(),
+  );
   assert!(result.is_err(), "path traversal should be blocked");
 }
 
@@ -189,7 +223,13 @@ fn path_traversal_with_tera_file_blocked() {
   }];
 
   let mut tera = Tera::default();
-  let result = extract_dir_contents(&files, dir.path(), &mut tera, &make_context("app"), &make_app_context());
+  let result = extract_dir_contents(
+    &files,
+    dir.path(),
+    &mut tera,
+    &make_context("app"),
+    &make_app_context(),
+  );
   assert!(
     result.is_err(),
     "single-level traversal should also be blocked"
@@ -207,7 +247,14 @@ fn renders_all_three_case_variables() {
   }];
 
   let mut tera = Tera::default();
-  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("My_App"), &make_app_context()).unwrap();
+  extract_dir_contents(
+    &files,
+    dir.path(),
+    &mut tera,
+    &make_context("My_App"),
+    &make_app_context(),
+  )
+  .unwrap();
 
   let content = std::fs::read_to_string(dir.path().join("vars.txt")).unwrap();
   assert_eq!(content, "My_App my-app my_app");
@@ -228,7 +275,14 @@ fn multiple_tera_files_rendered_independently() {
   ];
 
   let mut tera = Tera::default();
-  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("MyApp"), &make_app_context()).unwrap();
+  extract_dir_contents(
+    &files,
+    dir.path(),
+    &mut tera,
+    &make_context("MyApp"),
+    &make_app_context(),
+  )
+  .unwrap();
 
   let a = std::fs::read_to_string(dir.path().join("a.txt")).unwrap();
   let b = std::fs::read_to_string(dir.path().join("b.txt")).unwrap();

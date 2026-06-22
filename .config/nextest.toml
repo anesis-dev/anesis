@@ -1,0 +1,11 @@
+# The `auth_server` integration tests each start a real Axum server bound to the
+# fixed port 127.0.0.1:8080. Nextest runs every test in its own process, so the
+# in-process port mutex in the test file can't serialize them — without this the
+# processes race to bind the same port and all but one fail with ConnectionRefused.
+# This group forces those tests to run one at a time across the whole run.
+[test-groups]
+auth-server-port = { max-threads = 1 }
+
+[[profile.default.overrides]]
+filter = 'binary(auth_server)'
+test-group = 'auth-server-port'

@@ -19,8 +19,10 @@ pub struct AppContext {
 
 impl AppContext {
   pub fn new(paths: AnesisPaths, client: Client, cleanup_state: CleanupState) -> Self {
-    let backend_url = "http://localhost:4000".to_string();
-    let frontend_url = "http://localhost:3000".to_string();
+    // let backend_url = "http://localhost:4000".to_string();
+    // let frontend_url = "http://localhost:3000".to_string();
+    let backend_url = "https://anesis-server.onrender.com".to_string();
+    let frontend_url = "https://anesis-dev.vercel.app".to_string();
     Self {
       paths,
       client,

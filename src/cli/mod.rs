@@ -1,4 +1,3 @@
-
 use clap::{CommandFactory, Parser};
 
 pub mod commands;

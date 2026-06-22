@@ -26,12 +26,7 @@ pub async fn download_and_extract(
     request = request.bearer_auth(token);
   }
 
-  let bytes = request
-    .send()
-    .await?
-    .error_for_status()?
-    .bytes()
-    .await?;
+  let bytes = request.send().await?.error_for_status()?.bytes().await?;
 
   std::fs::create_dir_all(dest)?;
 

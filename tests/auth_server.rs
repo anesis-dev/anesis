@@ -1,18 +1,20 @@
-use std::sync::{Mutex, OnceLock};
+use std::sync::OnceLock;
 
 use anesis::auth::server::run_local_auth_server;
+use tokio::sync::{Mutex, MutexGuard};
 
 // Each test in this file starts a real Axum server on 127.0.0.1:8080.
 // The global mutex ensures no two tests bind the same port simultaneously.
+// It's an async-aware mutex so the guard can be held across await points.
 static PORT_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
-fn acquire_port() -> std::sync::MutexGuard<'static, ()> {
-  PORT_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap()
+async fn acquire_port() -> MutexGuard<'static, ()> {
+  PORT_LOCK.get_or_init(|| Mutex::new(())).lock().await
 }
 
 #[tokio::test]
 async fn callback_with_valid_state_returns_user() {
-  let _lock = acquire_port();
+  let _lock = acquire_port().await;
   let state = "validstate0000000000000000000000".to_string();
   let state_clone = state.clone();
 
@@ -45,7 +47,7 @@ async fn callback_with_valid_state_returns_user() {
 
 #[tokio::test]
 async fn callback_with_invalid_state_redirects_to_error() {
-  let _lock = acquire_port();
+  let _lock = acquire_port().await;
   let state = "correctstate00000000000000000000".to_string();
 
   let server_handle =
@@ -81,7 +83,7 @@ async fn callback_with_invalid_state_redirects_to_error() {
 
 #[tokio::test]
 async fn callback_without_state_redirects_to_error() {
-  let _lock = acquire_port();
+  let _lock = acquire_port().await;
   let server_handle = tokio::spawn(async move {
     run_local_auth_server("somestate".to_string(), "http://localhost:3000").await
   });
