@@ -4,7 +4,7 @@ version = "0.10.1"
 edition = "2024"
 authors = ["Maksym <maksymzhuk759@gmail.com>"]
 description = "CLI for scaffolding projects from remote templates and extending them with project addons"
-license = "MIT OR Apache-2.0"
+license-file = "LICENSE.md"
 repository = "https://github.com/anesis-dev/anesis"
 documentation = "https://docs.rs/anesis"
 readme = "README.md"
@@ -15,7 +15,7 @@ include = [
   "src/**/*",
   "templates/**/*",
   "Cargo.toml",
-  "LICENSE-*",
+  "LICENSE.md",
   "README.md",
   "CHANGELOG.md",
 ]

@@ -283,7 +283,9 @@ Installed addons are expected to include an `anesis.addon.json` manifest. Anesis
 
 ## License
 
-Licensed under either of these:
+Licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE.md).
 
-- MIT license ([LICENSE-MIT](LICENSE-MIT))
-- Apache License 2.0 ([LICENSE-Apache](LICENSE-Apache))
+The source is publicly available, but **commercial use is not permitted**. Any
+noncommercial purpose — personal projects, study, research, and use by
+nonprofit, educational, or government organizations — is allowed. See
+[LICENSE.md](LICENSE.md) for the full terms.

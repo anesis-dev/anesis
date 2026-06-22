@@ -1,8 +1,17 @@
-use std::path::PathBuf;
+use std::{
+  path::PathBuf,
+  sync::{Arc, Mutex},
+};
 
-use anesis::templates::{
-  TemplateFile,
-  generator::{extract_dir_contents, to_camel_case, to_kebab_case, to_pascal_case, to_snake_case},
+use anesis::{
+  context::AppContext,
+  paths::AnesisPaths,
+  templates::{
+    TemplateFile,
+    generator::{
+      extract_dir_contents, to_camel_case, to_kebab_case, to_pascal_case, to_snake_case,
+    },
+  },
 };
 use tera::{Context, Tera};
 
@@ -12,6 +21,11 @@ fn make_context(project_name: &str) -> Context {
   ctx.insert("project_name_kebab", &to_kebab_case(project_name));
   ctx.insert("project_name_snake", &to_snake_case(project_name));
   ctx
+}
+
+fn make_app_context() -> AppContext {
+  let paths = AnesisPaths::new().unwrap();
+  AppContext::new(paths, reqwest::Client::new(), Arc::new(Mutex::new(None)))
 }
 
 // ── case helpers ──────────────────────────────────────────────────────────────
@@ -41,7 +55,7 @@ fn renders_tera_file_and_strips_extension() {
   }];
 
   let mut tera = Tera::default();
-  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("my-app")).unwrap();
+  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("my-app"), &make_app_context()).unwrap();
 
   let content = std::fs::read_to_string(dir.path().join("README.md")).unwrap();
   assert_eq!(content, "# my-app");
@@ -56,7 +70,7 @@ fn copies_non_tera_file_unchanged() {
   }];
 
   let mut tera = Tera::default();
-  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("my-app")).unwrap();
+  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("my-app"), &make_app_context()).unwrap();
 
   let content = std::fs::read_to_string(dir.path().join("src").join("index.ts")).unwrap();
   assert_eq!(content, "console.log('hello')");
@@ -71,7 +85,7 @@ fn template_vars_kebab_and_snake() {
   }];
 
   let mut tera = Tera::default();
-  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("My_Project")).unwrap();
+  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("My_Project"), &make_app_context()).unwrap();
 
   let content = std::fs::read_to_string(dir.path().join("out.txt")).unwrap();
   assert_eq!(content, "my-project my_project");
@@ -86,7 +100,7 @@ fn creates_nested_output_directories() {
   }];
 
   let mut tera = Tera::default();
-  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("app")).unwrap();
+  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("app"), &make_app_context()).unwrap();
 
   assert!(dir.path().join("src/components/Button.tsx").exists());
 }
@@ -162,7 +176,7 @@ fn path_traversal_blocked_by_extract_dir_contents() {
   }];
 
   let mut tera = Tera::default();
-  let result = extract_dir_contents(&files, dir.path(), &mut tera, &make_context("app"));
+  let result = extract_dir_contents(&files, dir.path(), &mut tera, &make_context("app"), &make_app_context());
   assert!(result.is_err(), "path traversal should be blocked");
 }
 
@@ -175,7 +189,7 @@ fn path_traversal_with_tera_file_blocked() {
   }];
 
   let mut tera = Tera::default();
-  let result = extract_dir_contents(&files, dir.path(), &mut tera, &make_context("app"));
+  let result = extract_dir_contents(&files, dir.path(), &mut tera, &make_context("app"), &make_app_context());
   assert!(
     result.is_err(),
     "single-level traversal should also be blocked"
@@ -193,7 +207,7 @@ fn renders_all_three_case_variables() {
   }];
 
   let mut tera = Tera::default();
-  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("My_App")).unwrap();
+  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("My_App"), &make_app_context()).unwrap();
 
   let content = std::fs::read_to_string(dir.path().join("vars.txt")).unwrap();
   assert_eq!(content, "My_App my-app my_app");
@@ -214,7 +228,7 @@ fn multiple_tera_files_rendered_independently() {
   ];
 
   let mut tera = Tera::default();
-  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("MyApp")).unwrap();
+  extract_dir_contents(&files, dir.path(), &mut tera, &make_context("MyApp"), &make_app_context()).unwrap();
 
   let a = std::fs::read_to_string(dir.path().join("a.txt")).unwrap();
   let b = std::fs::read_to_string(dir.path().join("b.txt")).unwrap();
